@@ -4,10 +4,14 @@ import {flowerType} from "@/@types";
 import {useFetchFunc} from "@/hooks/useAxios";
 import {useEffect, useState} from "react";
 import {Button} from "../ui/button";
+import {EditFlowerComponent} from "../editing";
+import {useSearchStore} from "../store/searchStore";
 
 export const FlowersComponent = () => {
 	const axios = useFetchFunc();
 	const [data, setData] = useState<flowerType[]>([]);
+	const searchText = useSearchStore((state) => state.searchText);
+	const [filteredData, setFilteredData] = useState<flowerType[]>([]);
 
 	useEffect(() => {
 		const role = localStorage.getItem(`role`);
@@ -30,10 +34,20 @@ export const FlowersComponent = () => {
 			.catch((error) => console.log(error));
 	};
 
+	useEffect(() => {
+		if (searchText.length > 0) {
+			setFilteredData(
+				data.filter((flower: flowerType) => flower.name.includes(searchText))
+			);
+		} else {
+			setFilteredData(data);
+		}
+	}, [searchText, data]);
+
 	return (
 		<section className="grid grid-cols-4 gap-4 mt-4">
-			{data
-				? data.map((flower) => (
+			{filteredData
+				? filteredData.map((flower) => (
 						<div
 							className="w-full rounded-md border px-6 py-4 flex flex-col justify-between"
 							key={flower.id}>
@@ -56,12 +70,7 @@ export const FlowersComponent = () => {
 									variant={"outline"}>
 									Delete
 								</Button>
-								<Button
-									onClick={() => deleteFunc(flower.id)}
-									className="w-full"
-									variant={"outline"}>
-									Edit
-								</Button>
+								<EditFlowerComponent flower={flower} />
 							</div>
 						</div>
 				  ))
